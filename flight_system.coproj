@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Project version="2G - 2.0.0" name="flight_system">
+  <Target name="flight_system" isCurrent="1">
+    <Device manufacturerId="9" manufacturerName="ST" chipId="242" chipName="STM32F303VC" boardId="" boardName="" coreId="4" coreName="Cortex M4"/>
+    <BuildOption>
+      <Compile>
+        <Option name="OptimizationLevel" value="0"/>
+        <Option name="UseFPU" value="0"/>
+        <Option name="UserEditCompiler" value=""/>
+        <Option name="SupportCPlusplus" value="0"/>
+        <Includepaths>
+          <Includepath path="."/>
+          <Includepath path="app/libraries/stm32f30x_stdperiph_driver/inc"/>
+          <Includepath path="app/libraries/cmsis/device/st/stm32f30x/include"/>
+          <Includepath path="app/libraries/cmsis/include"/>
+        </Includepaths>
+        <DefinedSymbols>
+          <Define name="STM32F303VC"/>
+          <Define name="USE_STDPERIPH_DRIVER"/>
+        </DefinedSymbols>
+      </Compile>
+      <Link useDefault="0">
+        <Option name="DiscardUnusedSection" value="0"/>
+        <Option name="UserEditLinkder" value=""/>
+        <Option name="UseMemoryLayout" value="0"/>
+        <Option name="nostartfiles" value="1"/>
+        <Option name="LTO" value="0"/>
+        <Option name="IsNewStartupCode" value="1"/>
+        <Option name="Library" value="Not use C Library"/>
+        <LinkedLibraries/>
+        <MemoryAreas debugInFlashNotRAM="1">
+          <Memory name="IROM1" type="ReadOnly" size="0x0003FFFF" startValue="0x08000000"/>
+          <Memory name="IRAM1" type="ReadWrite" size="0x00007FFF" startValue="0x20000000"/>
+          <Memory name="IROM2" type="ReadOnly" size="" startValue=""/>
+          <Memory name="IRAM2" type="ReadWrite" size="" startValue=""/>
+        </MemoryAreas>
+        <LocateLinkFile path="./arm-gcc-link.ld" type="0"/>
+      </Link>
+      <Output>
+        <Option name="OutputFileType" value="0"/>
+        <Option name="Path" value="./"/>
+        <Option name="Name" value="flight_system"/>
+        <Option name="HEX" value="1"/>
+        <Option name="BIN" value="1"/>
+      </Output>
+      <User>
+        <UserRun name="Run#1" type="Before" checked="0" value=""/>
+        <UserRun name="Run#1" type="After" checked="0" value=""/>
+      </User>
+    </BuildOption>
+    <DebugOption>
+      <Option name="org.coocox.codebugger.gdbjtag.core.adapter" value="ST-Link"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.debugMode" value="SWD"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.clockDiv" value="1M"/>
+      <Option name="org.coocox.codebugger.gdbjtag.corerunToMain" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.jlinkgdbserver" value=""/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.userDefineGDBScript" value=""/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.targetEndianess" value="0"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.jlinkResetMode" value="Type 0: Normal"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.resetMode" value="SYSRESETREQ"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ifSemihost" value="0"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ifCacheRom" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ipAddress" value="127.0.0.1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.portNumber" value="2009"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.autoDownload" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.verify" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.downloadFuction" value="Erase Effected"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.defaultAlgorithm" value="C:\Users\Drunkard\AppData\Roaming\CooCox\CoIDE\config\flash\CooCox-Flash\CoIDE_STM32F3xx_256K\STM32F3xx_256.elf"/>
+    </DebugOption>
+    <ExcludeFile/>
+  </Target>
+  <Components path="./"/>
+  <LocalComponents/>
+  <Files>
+    <File name="Peripherals/stm32f30x_flash.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_flash.c" type="1"/>
+    <File name="Peripherals/stm32f30x_wwdg.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_wwdg.c" type="1"/>
+    <File name="Peripherals/stm32f30x_comp.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_comp.c" type="1"/>
+    <File name="Peripherals/stm32f30x_usart.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_usart.c" type="1"/>
+    <File name="FreeRTOS/portable/GCC/ARM_CM3/portmacro.h" path="app/FreeRTOS/portable/GCC/ARM_CM3/portmacro.h" type="1"/>
+    <File name="stm32f30x_it.h" path="app/stm32f30x_it.h" type="1"/>
+    <File name="Peripherals/stm32f30x_rtc.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_rtc.c" type="1"/>
+    <File name="Peripherals/stm32f30x_can.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_can.c" type="1"/>
+    <File name="Peripherals/stm32f30x_exti.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_exti.c" type="1"/>
+    <File name="Peripherals/stm32f30x_iwdg.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_iwdg.c" type="1"/>
+    <File name="Peripherals/stm32f30x_crc.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_crc.c" type="1"/>
+    <File name="main.h" path="app/main.h" type="1"/>
+    <File name="FreeRTOS/portable/MemMang" path="" type="2"/>
+    <File name="Peripherals/stm32f30x_i2c.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_i2c.c" type="1"/>
+    <File name="FreeRTOS/FreeRTOSConfig.h" path="app/FreeRTOS/FreeRTOSConfig.h" type="1"/>
+    <File name="Peripherals/stm32f30x_pwr.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_pwr.c" type="1"/>
+    <File name="FreeRTOS/list.c" path="app/FreeRTOS/list.c" type="1"/>
+    <File name="Peripherals/stm32f30x_opamp.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_opamp.c" type="1"/>
+    <File name="stm32f3_discovery.c" path="app/stm32f3_discovery.c" type="1"/>
+    <File name="FreeRTOS/timers.c" path="app/FreeRTOS/timers.c" type="1"/>
+    <File name="Peripherals/stm32f30x_dbgmcu.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_dbgmcu.c" type="1"/>
+    <File name="Peripherals/stm32f30x_dac.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_dac.c" type="1"/>
+    <File name="Peripherals/stm32f30x_spi.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_spi.c" type="1"/>
+    <File name="FreeRTOS/queue.c" path="app/FreeRTOS/queue.c" type="1"/>
+    <File name="Peripherals/stm32f30x_rcc.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_rcc.c" type="1"/>
+    <File name="Peripherals/stm32f30x_misc.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_misc.c" type="1"/>
+    <File name="startup_stm32f30x.s" path="app/startup_stm32f30x.s" type="1"/>
+    <File name="FreeRTOS/include/task.h" path="app/FreeRTOS/include/task.h" type="1"/>
+    <File name="FreeRTOS/portable/GCC/ARM_CM3/port.c" path="app/FreeRTOS/portable/GCC/ARM_CM3/port.c" type="1"/>
+    <File name="FreeRTOS/include/queue.h" path="app/FreeRTOS/include/queue.h" type="1"/>
+    <File name="FreeRTOS/tasks.c" path="app/FreeRTOS/tasks.c" type="1"/>
+    <File name="FreeRTOS/portable/GCC" path="" type="2"/>
+    <File name="Peripherals" path="" type="2"/>
+    <File name="FreeRTOS/include/list.h" path="app/FreeRTOS/include/list.h" type="1"/>
+    <File name="FreeRTOS/include/projdefs.h" path="app/FreeRTOS/include/projdefs.h" type="1"/>
+    <File name="Peripherals/stm32f30x_adc.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_adc.c" type="1"/>
+    <File name="system_stm32f30x.c" path="app/system_stm32f30x.c" type="1"/>
+    <File name="FreeRTOS/include/portable.h" path="app/FreeRTOS/include/portable.h" type="1"/>
+    <File name="FreeRTOS/include" path="" type="2"/>
+    <File name="FreeRTOS/include/timers.h" path="app/FreeRTOS/include/timers.h" type="1"/>
+    <File name="Peripherals/stm32f30x_tim.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_tim.c" type="1"/>
+    <File name="FreeRTOS/portable/MemMang/heap_4.c" path="app/FreeRTOS/portable/MemMang/heap_4.c" type="1"/>
+    <File name="Peripherals/stm32f30x_dma.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_dma.c" type="1"/>
+    <File name="FreeRTOS/include/FreeRTOS.h" path="app/FreeRTOS/include/FreeRTOS.h" type="1"/>
+    <File name="stm32f3_discovery.h" path="app/stm32f3_discovery.h" type="1"/>
+    <File name="FreeRTOS/portable/GCC/ARM_CM3" path="" type="2"/>
+    <File name="Peripherals/stm32f30x_gpio.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_gpio.c" type="1"/>
+    <File name="Peripherals/stm32f30x_syscfg.c" path="app/Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_syscfg.c" type="1"/>
+    <File name="stm32f30x_conf.h" path="app/stm32f30x_conf.h" type="1"/>
+    <File name="FreeRTOS" path="" type="2"/>
+    <File name="stm32f30x_it.c" path="app/stm32f30x_it.c" type="1"/>
+    <File name="main.c" path="app/main.c" type="1"/>
+    <File name="FreeRTOS/portable" path="" type="2"/>
+  </Files>
+  <Bookmarks/>
+</Project>
