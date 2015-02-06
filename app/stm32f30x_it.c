@@ -39,9 +39,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint32_t i = 0;
-extern data_buf USART_TxBuffer;
-extern data_buf USART_RxBuffer;
-extern TaskHandle_t xHandle;
+extern data_buf USART_TxBuffer, USART_RxBuffer;
+extern TaskHandle_t xHandle_shell;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -148,15 +147,14 @@ void USART3_IRQHandler(void)
 		{
 			USART_SendData(USART3, '\r');
 			USART_SendData(USART3, '\n');
-			buffer_init(&USART_RxBuffer);
 
 			// Resume the suspended task.
-			xYieldRequired = xTaskResumeFromISR(xHandle);
+			xYieldRequired = xTaskResumeFromISR(xHandle_shell);
 
 			if(xYieldRequired == pdTRUE)
 			{
 				// We should switch context so the ISR returns to a different task.
-				// NOTE:  How this is done depends on the port you are using.  Check
+				// NOTE: How this is done depends on the port you are using. Check
 				// the documentation and examples for your port.
 				portYIELD_FROM_ISR(pdTRUE);
 			}

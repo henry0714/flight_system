@@ -39,5 +39,7 @@ void usart_puts(char*);
 void buffer_init(data_buf*);
 int buffer_putc(data_buf*, char);
 int buffer_getc(data_buf*, char*);
+int strcmp(const char*, const char*);
+int strlen(const char*);
 
 #endif /* __MAIN_H */

@@ -3,13 +3,14 @@
 /* Private variables ---------------------------------------------------------*/
 RCC_ClocksTypeDef RCC_Clocks;
 data_buf USART_TxBuffer, USART_RxBuffer;
-TaskHandle_t xHandle = NULL;
+TaskHandle_t xHandle_shell = NULL;
 
 /* Private function prototypes -----------------------------------------------*/
 static void prvSetupHardware(void);
 void vLEDTask1(void*);
 void vLEDTask2(void*);
 void vTask_shell(void*);
+void command_parse(char*);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -19,14 +20,14 @@ void vTask_shell(void*);
   * @retval None
   */
 int main(void)
-{  
+{
     prvSetupHardware();
 	buffer_init(&USART_RxBuffer);
 	buffer_init(&USART_TxBuffer);
     
     xTaskCreate(vLEDTask1, "LED_TOP", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
     xTaskCreate(vLEDTask2, "LED_BOTTOM", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-    xTaskCreate(vTask_shell, "SHELL", configMINIMAL_STACK_SIZE, NULL, 3, &xHandle);
+    xTaskCreate(vTask_shell, "SHELL", configMINIMAL_STACK_SIZE, NULL, 4, &xHandle_shell);
 
     vTaskStartScheduler();
     
@@ -63,8 +64,26 @@ void vTask_shell(void* pvParameters)
 	{
 		usart_puts("DrunkardSystem> ");
 		vTaskSuspend(NULL);
+		command_parse(&USART_RxBuffer.data[0] + USART_RxBuffer.tail);
+
+		// Clean Rx Buffer.
+		buffer_init(&USART_RxBuffer);
 	}
     vTaskDelete(NULL);
+}
+
+void command_parse(char* command)
+{
+	if(strlen(command) == 0)
+		return;
+
+	if(strcmp(command, "start") == 0)
+		usart_puts("OK!\r\n");
+	else
+	{
+		usart_puts(command);
+		usart_puts(": command not found!\r\n");
+	}
 }
 
 void hw_LED_Init(void)
@@ -124,9 +143,10 @@ void hw_UART_Init(void)
   */
 static void prvSetupHardware(void)
 {
-    /* SysTick end of count event each 10ms */
     RCC_GetClocksFreq(&RCC_Clocks);
+	/* The divisor should match configTICK_RATE_HZ in FreeRTOSConfig.h */
     SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
+
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
     STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI);
 
@@ -136,16 +156,12 @@ static void prvSetupHardware(void)
 
 void usart_putc(char c)
 {
-	//while(USART_GetFlagStatus(USART_PORT, USART_FLAG_TXE) == RESET);
-	//USART_SendData(USART_PORT, c);
-
 	while(buffer_putc(&USART_TxBuffer, c));
 	if(USART_TxBuffer.ready)
 	{
 		USART_TxBuffer.ready = 0;
-		USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
+		USART_ITConfig(USART3, USART_IT_TXE, ENABLE);	// Raise TXE interrupt
 	}
-	//USART_SendData(USART_PORT, buffer_getc(&USART_TxBuffer));
 }
 
 void usart_puts(char* str)
@@ -157,11 +173,10 @@ void usart_puts(char* str)
 
 void buffer_init(data_buf* buf)
 {
-	/*
 	int i;
 	for(i = 0; i < DATABUFFER_SIZE; i++)
 		buf->data[i] = '\0';
-	*/
+
 	buf->head = 0;
 	buf->tail = 0;
 	buf->empty = 1;
@@ -195,6 +210,27 @@ int buffer_getc(data_buf* buf, char* c)
 	}
 	else
 		return 1;
+}
+
+int strcmp(const char* s1, const char* s2)
+{
+	while(*s1 && (*s1 == *s2))
+	{
+		s1++;
+		s2++;
+	}
+	return (*s1 - *s2);
+}
+
+int strlen(const char* s)
+{
+	int i = 0;
+	while(*s)
+	{
+		s++;
+		i++;
+	}
+	return i;
 }
 
 #ifdef  USE_FULL_ASSERT
