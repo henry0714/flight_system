@@ -3,13 +3,16 @@
 /* Private variables ---------------------------------------------------------*/
 RCC_ClocksTypeDef RCC_Clocks;
 data_buf USART_TxBuffer, USART_RxBuffer;
+data_buf Bluetooth_TxBuffer, Bluetooth_RxBuffer;
 TaskHandle_t xHandle_shell = NULL;
+TaskHandle_t xHandle_bluetooth = NULL;
 
 /* Private function prototypes -----------------------------------------------*/
 static void prvSetupHardware(void);
 void vLEDTask1(void*);
 void vLEDTask2(void*);
 void vTask_shell(void*);
+void vTask_bluetooth(void*);
 void command_parse(char*);
 
 /* Private functions ---------------------------------------------------------*/
@@ -24,10 +27,15 @@ int main(void)
     prvSetupHardware();
 	buffer_init(&USART_RxBuffer);
 	buffer_init(&USART_TxBuffer);
+	buffer_init(&Bluetooth_RxBuffer);
+	buffer_init(&Bluetooth_TxBuffer);
+
+	USART1_puts("System boot...\r\n");
     
-    xTaskCreate(vLEDTask1, "LED_TOP", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-    xTaskCreate(vLEDTask2, "LED_BOTTOM", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
+    xTaskCreate(vLEDTask1, "LED_TOP", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(vLEDTask2, "LED_BOTTOM", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     xTaskCreate(vTask_shell, "SHELL", configMINIMAL_STACK_SIZE, NULL, 4, &xHandle_shell);
+    xTaskCreate(vTask_bluetooth, "BLUETOOTH", configMINIMAL_STACK_SIZE, NULL, 3, &xHandle_bluetooth);
 
     vTaskStartScheduler();
     
@@ -62,12 +70,28 @@ void vTask_shell(void* pvParameters)
 {
 	while(1)
 	{
-		usart_puts("DrunkardSystem> ");
+		USART3_puts("DrunkardSystem> ");
+		//USART1_puts("DrunkardSystem> ");
 		vTaskSuspend(NULL);
 		command_parse(&USART_RxBuffer.data[0] + USART_RxBuffer.tail);
 
 		// Clean Rx Buffer.
 		buffer_init(&USART_RxBuffer);
+	}
+    vTaskDelete(NULL);
+}
+
+void vTask_bluetooth(void* pvParameters)
+{
+	while(1)
+	{
+		vTaskSuspend(NULL);
+		USART3_puts("\r\nBluetooth MSG: ");
+		USART3_puts(&Bluetooth_RxBuffer.data[0] + Bluetooth_RxBuffer.tail);
+		USART3_puts("\r\n");
+
+		// Clean Rx Buffer.
+		buffer_init(&Bluetooth_RxBuffer);
 	}
     vTaskDelete(NULL);
 }
@@ -78,11 +102,11 @@ void command_parse(char* command)
 		return;
 
 	if(strcmp(command, "start") == 0)
-		usart_puts("OK!\r\n");
+		USART3_puts("OK!\r\n");
 	else
 	{
-		usart_puts(command);
-		usart_puts(": command not found!\r\n");
+		USART3_puts(command);
+		USART3_puts(": command not found!\r\n");
 	}
 }
 
@@ -136,6 +160,47 @@ void hw_UART_Init(void)
 }
 
 /**
+  * @brief  Configure the UART interface connecting to the BC04 module.
+  * @param  None
+  * @retval None
+  */
+void hw_Bluetooth_Init(void)
+{
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+
+    /* Initialize GPIO pins */
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;            // Use the alternative pin functions
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_7);    // PB6 -> USART1_TX
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_7);    // PB7 -> USART1_RX
+
+	/* Initialize NVIC */
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x09;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    /* Initialize UART */
+	USART_InitTypeDef USART_InitStructure;
+    USART_InitStructure.USART_BaudRate = 9600;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No ;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(USART1, &USART_InitStructure);
+
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+
+	USART_Cmd(USART1, ENABLE);
+}
+
+/**
   * @brief  Configure the processor for use with the STM32F3-Discovery board.
   *         This includes setup for the I/O, system clock, and access timings.
   * @param  None
@@ -152,23 +217,34 @@ static void prvSetupHardware(void)
 
     hw_LED_Init();
     hw_UART_Init();
+    hw_Bluetooth_Init();
 }
 
-void usart_putc(char c)
+void usart_putc(char c, data_buf* buf, USART_TypeDef* usart)
 {
-	while(buffer_putc(&USART_TxBuffer, c));
-	if(USART_TxBuffer.ready)
+	while(buffer_putc(buf, c));
+	if(buf->ready)
 	{
-		USART_TxBuffer.ready = 0;
-		USART_ITConfig(USART3, USART_IT_TXE, ENABLE);	// Raise TXE interrupt
+		buf->ready = 0;
+		USART_ITConfig(usart, USART_IT_TXE, ENABLE);	// Raise TXE interrupt
 	}
 }
 
-void usart_puts(char* str)
+void usart_puts(char* str, data_buf* buf, USART_TypeDef* usart)
 {
 	int i;
 	for(i=0; str[i]!='\0'; i++)
-		usart_putc(str[i]);
+		usart_putc(str[i], buf, usart);
+}
+
+void USART1_puts(char* str)
+{
+	usart_puts(str, &Bluetooth_TxBuffer, USART1);
+}
+
+void USART3_puts(char* str)
+{
+	usart_puts(str, &USART_TxBuffer, USART3);
 }
 
 void buffer_init(data_buf* buf)

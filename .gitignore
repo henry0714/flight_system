@@ -1,4 +1,6 @@
 flight_system/
 doxygen/
 *.log
-
+*.cogui
+*.comarker
+*.coproj

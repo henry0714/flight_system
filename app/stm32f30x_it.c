@@ -40,7 +40,9 @@
 /* Private variables ---------------------------------------------------------*/
 uint32_t i = 0;
 extern data_buf USART_TxBuffer, USART_RxBuffer;
+extern data_buf Bluetooth_TxBuffer, Bluetooth_RxBuffer;
 extern TaskHandle_t xHandle_shell;
+extern TaskHandle_t xHandle_bluetooth;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -127,6 +129,71 @@ void EXTI0_IRQHandler(void)
 
 		/* Clear the EXTI line pending bit */
 		EXTI_ClearITPendingBit(USER_BUTTON_EXTI_LINE);
+	}
+}
+
+/**
+  * @brief  This function handles USART1_IRQ Handler.
+  * @param  None
+  * @retval None
+  */
+void USART1_IRQHandler(void)
+{
+	char c;
+	BaseType_t xYieldRequired;
+
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	{
+		c = USART_ReceiveData(USART1);
+		if(c == '\r')
+		{
+			// Resume the suspended task.
+			xYieldRequired = xTaskResumeFromISR(xHandle_bluetooth);
+
+			if(xYieldRequired == pdTRUE)
+			{
+				// We should switch context so the ISR returns to a different task.
+				// NOTE: How this is done depends on the port you are using. Check
+				// the documentation and examples for your port.
+				portYIELD_FROM_ISR(pdTRUE);
+			}
+		}
+		else
+			buffer_putc(&Bluetooth_RxBuffer, c);
+	}
+
+	if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET)
+	{
+		if(!buffer_getc(&Bluetooth_TxBuffer, &c))
+			USART_SendData(USART1, c);
+		else
+		{
+			USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+			Bluetooth_TxBuffer.ready = 1;
+		}
+	}
+
+	if(USART_GetFlagStatus(USART1, USART_FLAG_ORE) != RESET)
+	{
+		//c = USART_ReceiveData(USART1);
+		//while(USART_GetFlagStatus(USART1, USART_IT_TXE) != RESET);
+		//USART_SendData(USART1, c);
+		USART_ClearFlag(USART1, USART_FLAG_ORE);
+	}
+
+	if(USART_GetFlagStatus(USART1, USART_FLAG_NE) != RESET)
+	{
+		USART_ClearFlag(USART1, USART_FLAG_NE);
+	}
+
+	if(USART_GetFlagStatus(USART1, USART_FLAG_FE) != RESET)
+	{
+		USART_ClearFlag(USART1, USART_FLAG_FE);
+	}
+
+	if(USART_GetFlagStatus(USART1, USART_FLAG_PE) != RESET)
+	{
+		USART_ClearFlag(USART1, USART_FLAG_PE);
 	}
 }
 
